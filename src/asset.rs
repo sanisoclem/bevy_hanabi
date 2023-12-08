@@ -1,8 +1,14 @@
 use bevy::{
-    asset::{io::Reader, Asset, AssetLoader, AsyncReadExt, LoadContext},
     reflect::{Reflect, TypeUuid},
-    utils::{default, thiserror::Error, BoxedFuture, HashSet},
+    utils::HashSet,
 };
+
+#[cfg(feature = "serde")]
+use bevy::{
+    asset::{io::Reader, Asset, AssetLoader, AsyncReadExt, LoadContext},
+    utils::{default, thiserror::Error, BoxedFuture},
+};
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -169,7 +175,8 @@ pub enum AlphaMode {
 ///
 /// [`ParticleEffect`]: crate::ParticleEffect
 /// [`ParticleEffectBundle`]: crate::ParticleEffectBundle
-#[derive(Asset, Default, Clone, TypeUuid, Reflect, Serialize, Deserialize)]
+#[derive(Asset, Default, Clone, TypeUuid, Reflect)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[reflect(from_reflect = false)]
 #[uuid = "249aefa4-9b8e-48d3-b167-3adf6c081c34"]
 pub struct EffectAsset {
@@ -482,12 +489,6 @@ impl EffectAsset {
     }
 }
 
-/// Asset loader for [`EffectAsset`].
-///
-/// Effet assets take the `.effect` extension.
-#[derive(Default)]
-pub struct EffectAssetLoader;
-
 /// Error for the [`EffectAssetLoader`] loading an [`EffectAsset`].
 #[derive(Error, Debug)]
 pub enum EffectAssetLoaderError {
@@ -500,6 +501,14 @@ pub enum EffectAssetLoaderError {
     Ron(#[from] ron::error::SpannedError),
 }
 
+/// Asset loader for [`EffectAsset`].
+///
+/// Effet assets take the `.effect` extension.
+#[cfg(feature = "serde")]
+#[derive(Default)]
+pub struct EffectAssetLoader;
+
+#[cfg(feature = "serde")]
 impl AssetLoader for EffectAssetLoader {
     type Asset = EffectAsset;
 
